@@ -62,6 +62,7 @@ function parseInsertTools(text: string): { cleanText: string; insertions: Insert
 interface AISidebarProps {
   noteContent: string;
   noteId: string | null;
+  existingTags: string[];
   initialSummary?: string;
   autoValidationScore?: number | null;
   autoValidationResult?: {
@@ -78,6 +79,7 @@ interface AISidebarProps {
 export function AISidebar({
   noteContent,
   noteId,
+  existingTags,
   initialSummary,
   autoValidationScore,
   autoValidationResult,
@@ -183,7 +185,7 @@ export function AISidebar({
 
     setTagsLoading(true);
     try {
-      const tags = await suggestTagsWithPuter(noteContent);
+      const tags = await suggestTagsWithPuter(noteContent, existingTags);
 
       setSuggestedTags(tags);
       toast.success("Tags suggested!");

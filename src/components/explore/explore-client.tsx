@@ -16,11 +16,34 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
-import { Search, Globe, ArrowRight } from "lucide-react";
+import { Search, Globe } from "lucide-react";
 import { motion } from "framer-motion";
 import type { Note, User } from "@/lib/types";
 import { NoteScoreBadge } from "@/components/note/note-score-badge";
 import { NotePriceBadge } from "@/components/note/note-price-badge";
+
+function inferFileType(note: Note): string | null {
+  const mime = (note.original_file_type || "").toLowerCase();
+  const fileName = (note.original_file_name || "").toLowerCase();
+
+  if (mime.includes("pdf") || fileName.endsWith(".pdf")) return "PDF";
+  if (mime.includes("word") || fileName.endsWith(".docx")) return "DOCX";
+  if (mime.includes("markdown") || fileName.endsWith(".md")) return "MD";
+  if (mime.includes("text") || fileName.endsWith(".txt")) return "TXT";
+  if (fileName) return "FILE";
+  return null;
+}
+
+function fileTypeBadgeClass(type: string): string {
+  switch (type) {
+    case "PDF":
+      return "border-red-300/60 text-red-600 dark:border-red-400/40 dark:text-red-400";
+    case "DOCX":
+      return "border-blue-300/60 text-blue-600 dark:border-blue-400/40 dark:text-blue-400";
+    default:
+      return "";
+  }
+}
 
 interface ExploreClientProps {
   initialNotes: (Note & { users: User })[];
@@ -138,9 +161,16 @@ export function ExploreClient({
                       </CardTitle>
                       <NotePriceBadge price={note.price} isExclusive={note.is_exclusive} isSold={note.is_sold} />
                     </div>
-                    <CardDescription>
-                      {format(new Date(note.created_at), "MMM d, yyyy")}
-                    </CardDescription>
+                    <div className="flex items-center justify-between gap-2">
+                      <CardDescription>
+                        {format(new Date(note.created_at), "MMM d, yyyy")}
+                      </CardDescription>
+                      {inferFileType(note) && (
+                        <Badge variant="outline" className={`text-[10px] uppercase tracking-wide ${fileTypeBadgeClass(inferFileType(note)!)}`}>
+                          {inferFileType(note)}
+                        </Badge>
+                      )}
+                    </div>
                   </CardHeader>
                   <CardContent>
                     <p className="text-sm text-muted-foreground line-clamp-3">

@@ -3,9 +3,31 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { NoteDownloadButton } from "./note-download-button";
-import { sanitizeHtml } from "@/lib/sanitize";
-import { Star, ShieldCheck } from "lucide-react";
+import { SafeHtmlContent } from "./safe-html-content";
+import { Star, ShieldCheck, FileText } from "lucide-react";
 import type { Note, User, Tag } from "@/lib/types";
+
+function inferFileType(note: Note): string | null {
+  const mime = (note.original_file_type || "").toLowerCase();
+  const fileName = (note.original_file_name || "").toLowerCase();
+  if (mime.includes("pdf") || fileName.endsWith(".pdf")) return "PDF";
+  if (mime.includes("word") || fileName.endsWith(".docx")) return "DOCX";
+  if (mime.includes("markdown") || fileName.endsWith(".md")) return "MD";
+  if (mime.includes("text") || fileName.endsWith(".txt")) return "TXT";
+  if (fileName) return "FILE";
+  return null;
+}
+
+function fileTypeBadgeClass(type: string): string {
+  switch (type) {
+    case "PDF":
+      return "border-red-300/60 text-red-600 dark:border-red-400/40 dark:text-red-400";
+    case "DOCX":
+      return "border-blue-300/60 text-blue-600 dark:border-blue-400/40 dark:text-blue-400";
+    default:
+      return "";
+  }
+}
 
 interface NoteViewProps {
   note: Note;
@@ -63,11 +85,22 @@ export function NoteView({ note, author, tags, originalFileUrl, isExclusive = fa
           </Avatar>
           <div className="flex-1 min-w-0">
             <p className="font-medium truncate">{author.username}</p>
-            <p className="text-sm text-muted-foreground">
-              {format(new Date(note.created_at), "MMMM d, yyyy")}
-              {note.updated_at !== note.created_at &&
-                ` · Updated ${format(new Date(note.updated_at), "MMM d, yyyy")}`}
-            </p>
+            <div className="flex items-center gap-2">
+              <p className="text-sm text-muted-foreground">
+                {format(new Date(note.created_at), "MMMM d, yyyy")}
+                {note.updated_at !== note.created_at &&
+                  ` · Updated ${format(new Date(note.updated_at), "MMM d, yyyy")}`}
+              </p>
+              {inferFileType(note) && (
+                <Badge
+                  variant="outline"
+                  className={`text-[10px] uppercase tracking-wide gap-1 ${fileTypeBadgeClass(inferFileType(note)!)}`}
+                >
+                  <FileText className="h-3 w-3" />
+                  {inferFileType(note)}
+                </Badge>
+              )}
+            </div>
           </div>
         </div>
 
@@ -85,9 +118,9 @@ export function NoteView({ note, author, tags, originalFileUrl, isExclusive = fa
       </header>
 
       {/* Content */}
-      <div
+      <SafeHtmlContent
+        html={note.content || ""}
         className="prose prose-lg dark:prose-invert max-w-none overflow-x-auto break-words"
-        dangerouslySetInnerHTML={{ __html: sanitizeHtml(note.content || "") }}
       />
     </article>
   );

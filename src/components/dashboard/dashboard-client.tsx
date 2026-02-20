@@ -76,6 +76,29 @@ const NOTES_PER_PAGE = 12;
 
 type ActiveTab = "my-notes" | "purchased";
 
+function inferFileType(note: Note): string | null {
+  const mime = (note.original_file_type || "").toLowerCase();
+  const fileName = (note.original_file_name || "").toLowerCase();
+
+  if (mime.includes("pdf") || fileName.endsWith(".pdf")) return "PDF";
+  if (mime.includes("word") || fileName.endsWith(".docx")) return "DOCX";
+  if (mime.includes("markdown") || fileName.endsWith(".md")) return "MD";
+  if (mime.includes("text") || fileName.endsWith(".txt")) return "TXT";
+  if (fileName) return "FILE";
+  return null;
+}
+
+function fileTypeBadgeClass(type: string): string {
+  switch (type) {
+    case "PDF":
+      return "border-red-300/60 text-red-600 dark:border-red-400/40 dark:text-red-400";
+    case "DOCX":
+      return "border-blue-300/60 text-blue-600 dark:border-blue-400/40 dark:text-blue-400";
+    default:
+      return "";
+  }
+}
+
 export function DashboardClient({
   initialNotes,
   profile,
@@ -332,9 +355,16 @@ export function DashboardClient({
                       <CardTitle className="text-lg truncate">
                         {note.title}
                       </CardTitle>
-                      <CardDescription className="mt-1">
-                        {format(new Date(note.updated_at), "MMM d, yyyy")}
-                      </CardDescription>
+                        <div className="mt-1 flex items-center gap-2">
+                          <CardDescription>
+                            {format(new Date(note.updated_at), "MMM d, yyyy")}
+                          </CardDescription>
+                          {inferFileType(note) && (
+                            <Badge variant="outline" className={`text-[10px] uppercase tracking-wide ${fileTypeBadgeClass(inferFileType(note)!)}`}>
+                              {inferFileType(note)}
+                            </Badge>
+                          )}
+                        </div>
                     </div>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -480,9 +510,16 @@ export function DashboardClient({
                                 <CardTitle className="text-lg truncate">
                                   {note.title}
                                 </CardTitle>
-                                <CardDescription className="mt-1">
-                                  by {note.users?.username ?? "Unknown"}
-                                </CardDescription>
+                                <div className="mt-1 flex items-center gap-2">
+                                  <CardDescription>
+                                    by {note.users?.username ?? "Unknown"}
+                                  </CardDescription>
+                                  {inferFileType(note) && (
+                                    <Badge variant="outline" className={`text-[10px] uppercase tracking-wide ${fileTypeBadgeClass(inferFileType(note)!)}`}>
+                                      {inferFileType(note)}
+                                    </Badge>
+                                  )}
+                                </div>
                               </div>
                               <Badge variant="outline" className="shrink-0 ml-2">
                                 <ShoppingBag className="h-3 w-3 mr-1" />

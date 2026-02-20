@@ -20,7 +20,7 @@ export default async function ExplorePage({
   let query = (supabase as any)
     .from("notes")
     .select(
-      "id, title, slug, summary, raw_markdown, created_at, validation_score, validation_feedback, price, is_exclusive, is_sold, users(id, username, avatar_url)",
+      "id, title, slug, summary, raw_markdown, created_at, validation_score, validation_feedback, original_file_name, original_file_type, price, is_exclusive, is_sold, users(id, username, avatar_url)",
       { count: "exact" }
     )
     .eq("is_published", true)

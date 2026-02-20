@@ -14,6 +14,19 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
@@ -34,6 +47,7 @@ import {
   Download,
   DollarSign,
   Info,
+  ChevronsUpDown,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -53,6 +67,15 @@ type PublishDetectionResult = {
   summary: string;
   checkedAt: string;
 };
+
+const SPECIAL_TAGS = [
+  "ai-generated",
+  "human-generated",
+  "ai-assisted",
+  "human-written",
+  "machine-generated",
+  "original-content",
+];
 
 const BUILT_IN_TAGS = [
   "study-notes",
@@ -79,6 +102,7 @@ const BUILT_IN_TAGS = [
   "beginner",
   "intermediate",
   "advanced",
+  ...SPECIAL_TAGS,
 ];
 
 export default function NoteEditorPage() {
@@ -97,6 +121,7 @@ export default function NoteEditorPage() {
   const [tagInput, setTagInput] = useState("");
   const [tags, setTags] = useState<Tag[]>([]);
   const [availableTags, setAvailableTags] = useState<Tag[]>([]);
+  const [tagPopoverOpen, setTagPopoverOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [validating, setValidating] = useState(false);
   const [detectingAi, setDetectingAi] = useState(false);
@@ -830,63 +855,85 @@ export default function NoteEditorPage() {
           {/* Tags */}
           <div className="space-y-2">
             <div className="flex gap-2">
-              <Input
-                placeholder="Add a tag (e.g. calculus, react, biology)"
-                value={tagInput}
-                onChange={(e) => setTagInput(e.target.value)}
-                list="available-tags"
-                className="h-8"
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    void (async () => {
-                      const added = await handleAddTag(tagInput);
-                      if (added) setTagInput("");
-                    })();
-                  }
-                }}
-              />
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  void (async () => {
-                    const added = await handleAddTag(tagInput);
-                    if (added) setTagInput("");
-                  })();
-                }}
-              >
-                Add Tag
-              </Button>
-            </div>
-            <datalist id="available-tags">
-              {selectableTagNames.map((tagName) => (
-                <option key={tagName} value={tagName} />
-              ))}
-            </datalist>
-
-            {selectableTagNames.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {selectableTagNames.slice(0, 16).map((tagName) => (
-                  <Badge
-                    key={tagName}
+              <Popover open={tagPopoverOpen} onOpenChange={setTagPopoverOpen}>
+                <PopoverTrigger asChild>
+                  <Button
                     variant="outline"
-                    className="cursor-pointer"
-                    onClick={() => {
-                      void (async () => {
-                        const added = await handleAddTag(tagName);
-                        if (added && tagInput.toLowerCase() === tagName.toLowerCase()) {
-                          setTagInput("");
-                        }
-                      })();
-                    }}
+                    role="combobox"
+                    aria-expanded={tagPopoverOpen}
+                    className="h-8 flex-1 justify-between text-muted-foreground font-normal"
                   >
-                    + {tagName}
-                  </Badge>
-                ))}
-              </div>
-            )}
+                    Add a tag...
+                    <ChevronsUpDown className="ml-2 h-3.5 w-3.5 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[280px] p-0" align="start">
+                  <Command>
+                    <CommandInput placeholder="Search tags..." />
+                    <CommandList>
+                      <CommandEmpty>
+                        <button
+                          className="w-full text-left px-2 py-1 text-sm hover:underline"
+                          onClick={() => {
+                            const input = document.querySelector<HTMLInputElement>('[cmdk-input]');
+                            const val = input?.value?.trim();
+                            if (val) {
+                              void (async () => {
+                                const added = await handleAddTag(val);
+                                if (added) {
+                                  if (input) input.value = "";
+                                  setTagPopoverOpen(false);
+                                }
+                              })();
+                            }
+                          }}
+                        >
+                          Create custom tag
+                        </button>
+                      </CommandEmpty>
+                      {selectableTagNames.filter(n => SPECIAL_TAGS.includes(n)).length > 0 && (
+                        <CommandGroup heading="Authorship">
+                          {selectableTagNames
+                            .filter((n) => SPECIAL_TAGS.includes(n))
+                            .map((tagName) => (
+                              <CommandItem
+                                key={tagName}
+                                value={tagName}
+                                onSelect={() => {
+                                  void (async () => {
+                                    await handleAddTag(tagName);
+                                    setTagPopoverOpen(false);
+                                  })();
+                                }}
+                              >
+                                {tagName}
+                              </CommandItem>
+                            ))}
+                        </CommandGroup>
+                      )}
+                      <CommandGroup heading="Topics">
+                        {selectableTagNames
+                          .filter((n) => !SPECIAL_TAGS.includes(n))
+                          .map((tagName) => (
+                            <CommandItem
+                              key={tagName}
+                              value={tagName}
+                              onSelect={() => {
+                                void (async () => {
+                                  await handleAddTag(tagName);
+                                  setTagPopoverOpen(false);
+                                })();
+                              }}
+                            >
+                              {tagName}
+                            </CommandItem>
+                          ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            </div>
 
             <div className="flex flex-wrap items-center gap-2">
             {tags.map((tag) => (
@@ -935,6 +982,7 @@ export default function NoteEditorPage() {
             <AISidebar
               noteContent={rawMarkdown || content}
               noteId={currentNoteId}
+              existingTags={tags.map((tag) => tag.name)}
               initialSummary={description}
               autoValidationScore={validationScore}
               autoValidationResult={autoValidationResult}
@@ -960,6 +1008,7 @@ export default function NoteEditorPage() {
             <AISidebar
               noteContent={rawMarkdown || content}
               noteId={currentNoteId}
+              existingTags={tags.map((tag) => tag.name)}
               initialSummary={description}
               autoValidationScore={validationScore}
               autoValidationResult={autoValidationResult}
