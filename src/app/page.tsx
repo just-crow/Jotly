@@ -13,7 +13,7 @@ export default function HomePage() {
             <span className="text-primary">Share Ideas.</span>
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Jotly is a modern note publishing platform with AI-powered content
+            Veltri is a modern note publishing platform with AI-powered content
             enhancements. Write beautifully, get instant feedback, and share your
             knowledge with the world.
           </p>

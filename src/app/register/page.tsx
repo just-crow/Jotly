@@ -127,7 +127,7 @@ export default function RegisterPage() {
             <div className="flex justify-center mb-2">
               <Image
                 src="/logo.png"
-                alt="Jotly Logo"
+                alt="Veltri Logo"
                 width={1536}
                 height={1024}
                 className="h-20 w-auto object-contain dark:invert"
@@ -135,7 +135,7 @@ export default function RegisterPage() {
             </div>
             <CardTitle className="text-2xl font-bold">Create account</CardTitle>
             <CardDescription>
-              Join Jotly to start writing and publishing
+              Join Veltri to start writing and publishing
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">

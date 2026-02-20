@@ -70,7 +70,7 @@ export default function PrivacyPage() {
           </section>
 
           <div className="pt-6 text-center text-sm text-muted-foreground">
-            <p>Questions about privacy? Contact us at privacy@jotly.com</p>
+            <p>Questions about privacy? Contact us at privacy@veltri.com</p>
           </div>
         </CardContent>
       </Card>

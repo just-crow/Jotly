@@ -41,13 +41,13 @@ export async function Navbar() {
           <Link href="/" className="flex items-center gap-0 mr-2 md:mr-16">
             <Image
               src="/logo.png"
-              alt="Jotly Logo"
+              alt="Veltri Logo"
               width={108}
               height={72}
               className="h-12 md:h-18 w-auto object-contain dark:invert"
               priority
             />
-            <span className="text-xl font-bold tracking-tight">Jotly</span>
+            <span className="text-xl font-bold tracking-tight">Veltri</span>
           </Link>
           <nav className="hidden md:flex items-center gap-4">
             <Link

@@ -13,7 +13,7 @@ export default function TermsPage() {
           <section>
             <h2 className="text-xl font-semibold mb-2">1. Acceptance of Terms</h2>
             <p>
-              By accessing and using Jotly (&quot;the Service&quot;), you agree to comply with and be bound by these Terms of Service. If you do not agree to these terms, please do not use the Service.
+              By accessing and using Veltri (&quot;the Service&quot;), you agree to comply with and be bound by these Terms of Service. If you do not agree to these terms, please do not use the Service.
             </p>
           </section>
 
@@ -31,7 +31,7 @@ export default function TermsPage() {
           <section>
             <h2 className="text-xl font-semibold mb-2">3. Content and Conduct</h2>
             <p>
-              Users retain ownership of the content they create and upload (&quot;Notes&quot;). By publishing content on Jotly, you grant us a license to host, display, and distribute your content.
+              Users retain ownership of the content they create and upload (&quot;Notes&quot;). By publishing content on Veltri, you grant us a license to host, display, and distribute your content.
             </p>
             <p className="mt-2">
               You agree not to upload content that is illegal, offensive, infringing on intellectual property rights, or otherwise harmful. We reserve the right to remove any content at our discretion.
@@ -45,7 +45,7 @@ export default function TermsPage() {
             <div className="bg-muted p-4 rounded-md border border-l-4 border-l-primary">
               <h3 className="font-bold mb-1">Platform Fee</h3>
               <p>
-                Jotly charges a <strong>30% platform fee</strong> on all transactions made through the marketplace. Publishers receive <strong>70%</strong> of the final sale price (after any applicable taxes).
+                Veltri charges a <strong>30% platform fee</strong> on all transactions made through the marketplace. Publishers receive <strong>70%</strong> of the final sale price (after any applicable taxes).
               </p>
             </div>
             <p className="mt-2">
@@ -58,7 +58,7 @@ export default function TermsPage() {
           <section>
             <h2 className="text-xl font-semibold mb-2">5. Intellectual Property (DMCA)</h2>
             <p>
-              We respect the intellectual property rights of others. If you believe your work has been copied in a way that constitutes copyright infringement, please contact our designated Copyright Agent at support@jotly.com.
+              We respect the intellectual property rights of others. If you believe your work has been copied in a way that constitutes copyright infringement, please contact our designated Copyright Agent at support@veltri.com.
             </p>
           </section>
 
@@ -67,12 +67,12 @@ export default function TermsPage() {
           <section>
             <h2 className="text-xl font-semibold mb-2">6. Limitation of Liability</h2>
             <p>
-              The Service is provided &quot;as is&quot; without warranties of any kind. Jotly shall not be liable for any indirect, incidental, special, consequential, or punitive damages resulting from your use of the Service.
+              The Service is provided &quot;as is&quot; without warranties of any kind. Veltri shall not be liable for any indirect, incidental, special, consequential, or punitive damages resulting from your use of the Service.
             </p>
           </section>
 
           <div className="pt-6 text-center text-sm text-muted-foreground">
-            <p>Questions? Contact us at support@jotly.com</p>
+            <p>Questions? Contact us at support@veltri.com</p>
           </div>
         </CardContent>
       </Card>

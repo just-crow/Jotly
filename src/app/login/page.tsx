@@ -80,7 +80,7 @@ export default function LoginPage() {
             <div className="flex justify-center mb-2">
               <Image
                 src="/logo.png"
-                alt="Jotly Logo"
+                alt="Veltri Logo"
                 width={1536}
                 height={1024}
                 className="h-20 w-auto object-contain dark:invert"

@@ -15,8 +15,8 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "Jotly - Modern Note Publishing",
-    template: "%s | Jotly",
+    default: "Veltri - Modern Note Publishing",
+    template: "%s | Veltri",
   },
   description:
     "A modern note publishing marketplace with AI-powered content enhancements.",
