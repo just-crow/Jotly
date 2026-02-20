@@ -352,7 +352,7 @@ export function DashboardClient({
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1 min-w-0 overflow-hidden">
-                      <CardTitle className="text-lg truncate break-words">
+                      <CardTitle className="text-lg truncate">
                         {note.title}
                       </CardTitle>
                         <div className="mt-1 flex items-center gap-2">
@@ -505,7 +505,7 @@ export function DashboardClient({
                           <CardHeader className="pb-3">
                             <div className="flex items-start justify-between gap-2">
                               <div className="flex-1 min-w-0 overflow-hidden">
-                                <CardTitle className="text-lg truncate break-words">
+                                <CardTitle className="text-lg truncate">
                                   {note.title}
                                 </CardTitle>
                                 <div className="mt-1 flex items-center gap-2">

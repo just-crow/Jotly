@@ -133,7 +133,7 @@ export function ExploreClient({
                   <CardHeader>
                     <div className="flex items-start justify-between gap-2">
                       <CardTitle className="min-w-0 overflow-hidden group-hover:text-primary transition-colors">
-                        <span className="block line-clamp-2 break-words" title={note.title}>{note.title}</span>
+                        <span className="block line-clamp-2 break-all" title={note.title}>{note.title}</span>
                       </CardTitle>
                       <div className="shrink-0">
                         <NotePriceBadge price={note.price} isExclusive={note.is_exclusive} isSold={note.is_sold} />
