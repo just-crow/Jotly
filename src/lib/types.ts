@@ -290,6 +290,50 @@ export type Database = {
           },
         ];
       };
+      user_reviews: {
+        Row: {
+          id: string;
+          reviewer_id: string;
+          reviewed_user_id: string;
+          rating: number;
+          comment: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          reviewer_id: string;
+          reviewed_user_id: string;
+          rating: number;
+          comment?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          reviewer_id?: string;
+          reviewed_user_id?: string;
+          rating?: number;
+          comment?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "user_reviews_reviewer_id_fkey";
+            columns: ["reviewer_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "user_reviews_reviewed_user_id_fkey";
+            columns: ["reviewed_user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
@@ -305,6 +349,7 @@ export type NoteTag = Database["public"]["Tables"]["note_tags"]["Row"];
 export type Comment = Database["public"]["Tables"]["comments"]["Row"];
 export type Transaction = Database["public"]["Tables"]["transactions"]["Row"];
 export type Purchase = Database["public"]["Tables"]["purchases"]["Row"];
+export type UserReview = Database["public"]["Tables"]["user_reviews"]["Row"];
 
 export type NoteWithTags = Note & {
   tags: Tag[];

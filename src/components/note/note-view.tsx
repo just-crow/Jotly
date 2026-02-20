@@ -1,4 +1,5 @@
 import { format } from "date-fns";
+import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -77,14 +78,18 @@ export function NoteView({ note, author, tags, originalFileUrl, isExclusive = fa
         )}
 
         <div className="flex items-center gap-3 min-w-0">
-          <Avatar className="h-10 w-10 shrink-0">
-            <AvatarImage src={author.avatar_url || ""} alt={author.username} />
-            <AvatarFallback>
-              {author.username?.charAt(0).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
+          <Link href={`/u/${author.username}`} className="shrink-0">
+            <Avatar className="h-10 w-10">
+              <AvatarImage src={author.avatar_url || ""} alt={author.username} />
+              <AvatarFallback>
+                {author.username?.charAt(0).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+          </Link>
           <div className="flex-1 min-w-0">
-            <p className="font-medium truncate">{author.username}</p>
+            <Link href={`/u/${author.username}`} className="font-medium hover:underline truncate block">
+              {author.username}
+            </Link>
             <div className="flex items-center gap-2">
               <p className="text-sm text-muted-foreground">
                 {format(new Date(note.created_at), "MMMM d, yyyy")}

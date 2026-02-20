@@ -21,6 +21,7 @@ import { motion } from "framer-motion";
 import type { Note, User } from "@/lib/types";
 import { NoteScoreBadge } from "@/components/note/note-score-badge";
 import { NotePriceBadge } from "@/components/note/note-price-badge";
+import { StarDisplay } from "@/components/profile/user-reviews-list";
 
 function inferFileType(note: Note): string {
   const mime = (note.original_file_type || "").toLowerCase();
@@ -51,6 +52,7 @@ interface ExploreClientProps {
   totalCount: number;
   currentPage: number;
   perPage: number;
+  userRatings?: Record<string, number>;
 }
 
 export function ExploreClient({
@@ -59,6 +61,7 @@ export function ExploreClient({
   totalCount,
   currentPage,
   perPage,
+  userRatings = {},
 }: ExploreClientProps) {
   const [searchQuery, setSearchQuery] = useState(initialQuery);
   const router = useRouter();
@@ -164,9 +167,24 @@ export function ExploreClient({
                           {note.users?.username?.charAt(0).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
-                      <span className="text-sm text-muted-foreground">
-                        {note.users?.username}
-                      </span>
+                      <div className="flex flex-col gap-0.5">
+                        <span
+                          className="text-sm text-muted-foreground hover:text-foreground hover:underline cursor-pointer leading-none"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            router.push(`/u/${note.users?.username}`);
+                          }}
+                        >
+                          {note.users?.username}
+                        </span>
+                        {userRatings[(note.users as any)?.id] && (
+                          <StarDisplay
+                            rating={userRatings[(note.users as any).id]}
+                            size="sm"
+                          />
+                        )}
+                      </div>
                     </div>
                     <NoteScoreBadge
                       noteId={note.id}

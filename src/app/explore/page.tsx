@@ -35,6 +35,32 @@ export default async function ExplorePage({
 
   const { data: notes, count } = await query;
 
+  // Fetch avg ratings for all authors in this page
+  const userRatings: Record<string, number> = {};
+  const userIds = [
+    ...new Set(
+      ((notes as any[]) ?? [])
+        .map((n: any) => n.users?.id)
+        .filter(Boolean) as string[]
+    ),
+  ];
+  if (userIds.length > 0) {
+    const { data: ratingsData } = await (supabase as any)
+      .from("user_reviews")
+      .select("reviewed_user_id, rating")
+      .in("reviewed_user_id", userIds);
+    if (ratingsData) {
+      const grouped: Record<string, number[]> = {};
+      for (const r of ratingsData as { reviewed_user_id: string; rating: number }[]) {
+        if (!grouped[r.reviewed_user_id]) grouped[r.reviewed_user_id] = [];
+        grouped[r.reviewed_user_id].push(r.rating);
+      }
+      for (const [uid, ratings] of Object.entries(grouped)) {
+        userRatings[uid] = ratings.reduce((a, b) => a + b, 0) / ratings.length;
+      }
+    }
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
       <ExploreClient
@@ -43,6 +69,7 @@ export default async function ExplorePage({
         totalCount={count || 0}
         currentPage={page}
         perPage={perPage}
+        userRatings={userRatings}
       />
     </div>
   );
