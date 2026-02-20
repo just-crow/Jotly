@@ -3,7 +3,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { NoteDownloadButton } from "./note-download-button";
-import { sanitizeHtml } from "@/lib/sanitize";
+import { SanitizedContent } from "./sanitized-content";
 import { Star, ShieldCheck } from "lucide-react";
 import type { Note, User, Tag } from "@/lib/types";
 
@@ -85,9 +85,9 @@ export function NoteView({ note, author, tags, originalFileUrl, isExclusive = fa
       </header>
 
       {/* Content */}
-      <div
+      <SanitizedContent
+        html={note.content || ""}
         className="prose prose-lg dark:prose-invert max-w-none overflow-x-auto break-words"
-        dangerouslySetInnerHTML={{ __html: sanitizeHtml(note.content || "") }}
       />
     </article>
   );
