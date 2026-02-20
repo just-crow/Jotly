@@ -12,9 +12,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { PenSquare, LogOut, User, LayoutDashboard, Coins } from "lucide-react";
+import { PenSquare, LogOut, User, LayoutDashboard, Coins, Building2 } from "lucide-react";
 import type { User as UserType } from "@/lib/types";
 import { MobileNav } from "@/components/mobile-nav";
+import { getOrgDomain, getOrgDisplayName } from "@/lib/org-utils";
 
 export async function Navbar() {
   const supabase = await createClient();
@@ -33,6 +34,9 @@ export async function Navbar() {
       profile = data as UserType | null;
     }
   }
+
+  const orgDomain = profile ? getOrgDomain(profile.email) : null;
+  const orgDisplayName = orgDomain ? getOrgDisplayName(orgDomain) : null;
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -62,6 +66,15 @@ export async function Navbar() {
             >
               Store
             </Link>
+            {orgDomain && (
+              <Link
+                href="/org"
+                className="flex items-center gap-1.5 text-sm font-medium text-primary/80 hover:text-primary transition-colors"
+              >
+                <Building2 className="h-3.5 w-3.5" />
+                {orgDisplayName}
+              </Link>
+            )}
           </nav>
         </div>
 
@@ -122,6 +135,14 @@ export async function Navbar() {
                       Profile
                     </Link>
                   </DropdownMenuItem>
+                  {orgDomain && (
+                    <DropdownMenuItem asChild>
+                      <Link href="/org" className="cursor-pointer">
+                        <Building2 className="mr-2 h-4 w-4 text-primary" />
+                        {orgDisplayName ?? "Organization"}
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
                     <form action="/auth/signout" method="post">

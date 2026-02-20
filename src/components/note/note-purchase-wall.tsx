@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Lock, Coins, DollarSign, Loader2, ShieldAlert, Star } from "lucide-react";
+import { Lock, Coins, DollarSign, Loader2, ShieldAlert, Star, Building2 } from "lucide-react";
 
 const POINTS_PER_DOLLAR = 100;
 const POINTS_DISCOUNT = 0.05;
@@ -29,6 +29,8 @@ interface NotePurchaseWallProps {
   isLoggedIn: boolean;
   isExclusive?: boolean;
   isSold?: boolean;
+  orgDiscountPercent?: number;  // 0-100, org member discount
+  orgName?: string;             // e.g. "MIT"
 }
 
 export function NotePurchaseWall({
@@ -43,11 +45,15 @@ export function NotePurchaseWall({
   isLoggedIn,
   isExclusive = false,
   isSold = false,
+  orgDiscountPercent = 0,
+  orgName,
 }: NotePurchaseWallProps) {
   const [purchasing, setPurchasing] = useState(false);
   const router = useRouter();
 
-  const pointsCost = Math.ceil(price * (1 - POINTS_DISCOUNT) * POINTS_PER_DOLLAR);
+  const orgFactor = 1 - orgDiscountPercent / 100;
+  const effectivePrice = price * orgFactor;
+  const pointsCost = Math.ceil(effectivePrice * (1 - POINTS_DISCOUNT) * POINTS_PER_DOLLAR);
   const hasEnoughPoints =
     userPointsBalance !== null && userPointsBalance >= pointsCost;
 
@@ -162,7 +168,20 @@ export function NotePurchaseWall({
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="text-center">
-            <div className="text-3xl font-bold">${price.toFixed(2)}</div>
+            {orgDiscountPercent > 0 ? (
+              <>
+                <div className="flex items-center justify-center gap-2 mb-1">
+                  <span className="text-xl line-through text-muted-foreground/60">${price.toFixed(2)}</span>
+                  <span className="text-3xl font-bold">${effectivePrice.toFixed(2)}</span>
+                </div>
+                <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-700/40 px-2.5 py-0.5 text-xs font-semibold">
+                  <Building2 className="h-3 w-3" />
+                  {orgName ?? "Org"} member — {orgDiscountPercent}% off
+                </div>
+              </>
+            ) : (
+              <div className="text-3xl font-bold">${price.toFixed(2)}</div>
+            )}
           </div>
 
           {!isLoggedIn ? (
@@ -187,7 +206,7 @@ export function NotePurchaseWall({
                 )}
                 <span className="truncate">Buy with {pointsCost.toLocaleString()} pts</span>
                 <Badge variant="secondary" className="shrink-0 text-xs">
-                  5% off
+                  {orgDiscountPercent > 0 ? `${orgDiscountPercent + 5}%+ off` : "5% off"}
                 </Badge>
               </Button>
               {!hasEnoughPoints && userPointsBalance !== null && (
@@ -209,7 +228,12 @@ export function NotePurchaseWall({
                 ) : (
                   <DollarSign className="h-4 w-4" />
                 )}
-                Pay ${price.toFixed(2)}
+                Pay ${effectivePrice.toFixed(2)}
+                {orgDiscountPercent > 0 && (
+                  <Badge variant="secondary" className="shrink-0 text-xs text-emerald-600 dark:text-emerald-400">
+                    {orgDiscountPercent}% off
+                  </Badge>
+                )}
               </Button>
             </div>
           )}

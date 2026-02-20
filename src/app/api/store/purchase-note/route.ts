@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { rateLimit, getRateLimitKey } from "@/lib/rate-limit";
+import { getOrgDomain } from "@/lib/org-utils";
 
 const POINTS_PER_DOLLAR = 100;
 const POINTS_DISCOUNT = 0.05; // 5% discount when paying with points
@@ -75,12 +76,27 @@ export async function POST(request: NextRequest) {
 
     const dollarPrice = Number(note.price);
 
+    // Apply org member discount (if any)
+    let orgDiscountFactor = 1;
+    const buyerOrgDomain = getOrgDomain(user.email ?? "");
+    if (buyerOrgDomain) {
+      const { data: orgData } = await (supabase as any)
+        .from("organizations")
+        .select("discount_percent")
+        .eq("domain", buyerOrgDomain)
+        .maybeSingle();
+      if (orgData?.discount_percent > 0) {
+        orgDiscountFactor = 1 - (orgData.discount_percent as number) / 100;
+      }
+    }
+    const effectiveDollarPrice = dollarPrice * orgDiscountFactor;
+
     // Calculate costs based on payment method
     let amountCharged: number;
     let pointsCost: number;
 
     if (paymentMethod === "points") {
-      const discountedDollar = dollarPrice * (1 - POINTS_DISCOUNT);
+      const discountedDollar = effectiveDollarPrice * (1 - POINTS_DISCOUNT);
       pointsCost = Math.ceil(discountedDollar * POINTS_PER_DOLLAR);
       amountCharged = discountedDollar;
     } else {
@@ -91,7 +107,7 @@ export async function POST(request: NextRequest) {
       }
       // ---- END MOCK ----
       pointsCost = 0;
-      amountCharged = dollarPrice;
+      amountCharged = effectiveDollarPrice;
     }
 
     // Atomic DB transaction: everything in one call

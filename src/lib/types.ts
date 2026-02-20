@@ -334,6 +334,32 @@ export type Database = {
           },
         ];
       };
+      organizations: {
+        Row: {
+          domain: string;
+          display_name: string;
+          discount_percent: number;
+          created_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          domain: string;
+          display_name: string;
+          discount_percent?: number;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          domain?: string;
+          display_name?: string;
+          discount_percent?: number;
+          created_by?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
@@ -350,6 +376,7 @@ export type Comment = Database["public"]["Tables"]["comments"]["Row"];
 export type Transaction = Database["public"]["Tables"]["transactions"]["Row"];
 export type Purchase = Database["public"]["Tables"]["purchases"]["Row"];
 export type UserReview = Database["public"]["Tables"]["user_reviews"]["Row"];
+export type Organization = Database["public"]["Tables"]["organizations"]["Row"];
 
 export type NoteWithTags = Note & {
   tags: Tag[];

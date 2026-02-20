@@ -8,6 +8,7 @@ import { NoteAiDetectionPanel } from "@/components/note/note-ai-detection-panel"
 import { NotePurchaseWall } from "@/components/note/note-purchase-wall";
 import { ShieldAlert } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { getOrgDomain, getOrgDisplayName } from "@/lib/org-utils";
 import type { Note, User } from "@/lib/types";
 
 interface NotePageProps {
@@ -99,14 +100,33 @@ export default async function NotePage({ params }: NotePageProps) {
   const isSold = !!note.is_sold;
   let hasPurchased = false;
   let userPointsBalance: number | null = null;
+  let orgDiscountPercent = 0;
+  let orgName: string | undefined;
 
   if (currentUser) {
     const { data: userProfile } = await (supabase as any)
       .from("users")
-      .select("points_balance")
+      .select("points_balance, email")
       .eq("id", currentUser.id)
       .single();
     userPointsBalance = (userProfile as any)?.points_balance ?? 0;
+
+    // Org discount
+    const buyerEmail: string = (userProfile as any)?.email ?? currentUser.email ?? "";
+    const buyerOrgDomain = getOrgDomain(buyerEmail);
+    if (buyerOrgDomain) {
+      const { data: orgData } = await (supabase as any)
+        .from("organizations")
+        .select("discount_percent, display_name")
+        .eq("domain", buyerOrgDomain)
+        .maybeSingle();
+      if (orgData) {
+        orgDiscountPercent = (orgData as any).discount_percent ?? 0;
+        orgName = (orgData as any).display_name ?? getOrgDisplayName(buyerOrgDomain);
+      } else {
+        orgName = getOrgDisplayName(buyerOrgDomain);
+      }
+    }
 
     if (notePrice > 0 && !isAuthor) {
       const { data: purchase } = await (supabase as any)
@@ -198,6 +218,8 @@ export default async function NotePage({ params }: NotePageProps) {
                 isLoggedIn={!!currentUser}
                 isExclusive={isExclusive}
                 isSold={isSold}
+                orgDiscountPercent={orgDiscountPercent}
+                orgName={orgName}
               />
               {isExclusive && (
                 <>

@@ -18,10 +18,12 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Loader2, Save, KeyRound, Eye, EyeOff } from "lucide-react";
+import { Loader2, Save, KeyRound, Eye, EyeOff, Building2 } from "lucide-react";
+import Link from "next/link";
 import { AvatarUploader } from "@/components/profile/avatar-uploader";
 import { UserReviewsList } from "@/components/profile/user-reviews-list";
 import type { ReviewWithReviewer } from "@/components/profile/user-reviews-list";
+import { getOrgDomain, getOrgDisplayName } from "@/lib/org-utils";
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState<User | null>(null);
@@ -36,6 +38,10 @@ export default function ProfilePage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showNew, setShowNew] = useState(false);
   const [changingPw, setChangingPw] = useState(false);
+
+  // org
+  const orgDomain = profile ? getOrgDomain(profile.email) : null;
+  const orgName = orgDomain ? getOrgDisplayName(orgDomain) : null;
 
   // reviews
   const [reviews, setReviews] = useState<ReviewWithReviewer[]>([]);
@@ -195,10 +201,20 @@ export default function ProfilePage() {
                     onUploaded={setAvatarUrl}
                   />
                 )}
-                <div className="text-sm text-muted-foreground">
+                <div className="text-sm text-muted-foreground space-y-0.5">
                   <p className="font-medium text-foreground">{username || "Your name"}</p>
                   <p>{profile?.email}</p>
-                  <p className="mt-1 text-xs">Click avatar to upload &amp; crop</p>
+                  {orgDomain && orgName ? (
+                    <Link
+                      href="/org"
+                      className="inline-flex items-center gap-1.5 mt-1 rounded-full bg-primary/10 border border-primary/20 px-2.5 py-0.5 text-xs font-medium text-primary hover:bg-primary/20 transition-colors"
+                    >
+                      <Building2 className="h-3 w-3" />
+                      {orgName} org member · Manage
+                    </Link>
+                  ) : (
+                    <p className="mt-1 text-xs">Click avatar to upload &amp; crop</p>
+                  )}
                 </div>
               </div>
 
