@@ -2,6 +2,18 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
+### 1) Configure environment variables
+
+Copy `.env.example` to `.env.local` and fill in the values.
+
+Required AI variable:
+
+- `NEXT_PUBLIC_PUTER_MODEL` (optional, defaults to `gpt-5-nano`)
+
+This app uses Puter.js from the browser (`https://js.puter.com/v2/`) and does not require an API key.
+
+### 2) Run the app
+
 First, run the development server:
 
 ```bash
