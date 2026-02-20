@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { NoteDownloadButton } from "./note-download-button";
 import { SafeHtmlContent } from "./safe-html-content";
-import { Star, ShieldCheck, FileText } from "lucide-react";
+import { Star, ShieldCheck, FileText, ShieldAlert } from "lucide-react";
 import type { Note, User, Tag } from "@/lib/types";
 
 function inferFileType(note: Note): string {
@@ -120,6 +120,22 @@ export function NoteView({ note, author, tags, originalFileUrl, isExclusive = fa
         html={note.content || ""}
         className="prose prose-lg dark:prose-invert max-w-none overflow-x-auto break-words"
       />
+
+      {/* Originality disclaimer for exclusive notes */}
+      {isExclusive && (
+        <>
+          <Separator className="mt-10 mb-6" />
+          <div className="flex gap-3 rounded-lg border border-violet-300/40 bg-violet-50/50 dark:border-violet-500/20 dark:bg-violet-950/20 px-4 py-3 text-sm text-muted-foreground">
+            <ShieldAlert className="h-4 w-4 shrink-0 mt-0.5 text-violet-500" />
+            <p>
+              The creator of this note has declared that its content is entirely original and has{" "}
+              <strong className="text-foreground">not been published</strong> anywhere on the
+              internet, nor submitted to any anti-plagiarism service (such as Turnitin or
+              iThenticate) prior to listing here.
+            </p>
+          </div>
+        </>
+      )}
     </article>
   );
 }

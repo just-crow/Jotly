@@ -32,6 +32,14 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
 import slugify from "slugify";
 import {
@@ -135,6 +143,7 @@ export default function NoteEditorPage() {
   } | null>(null);
   const [price, setPrice] = useState<number>(0);
   const [isExclusive, setIsExclusive] = useState(false);
+  const [showExclusiveDialog, setShowExclusiveDialog] = useState(false);
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(!isNew);
   const [showAISidebar, setShowAISidebar] = useState(false);
@@ -736,7 +745,13 @@ export default function NoteEditorPage() {
                     <Switch
                       id="exclusive"
                       checked={isExclusive}
-                      onCheckedChange={setIsExclusive}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setShowExclusiveDialog(true);
+                        } else {
+                          setIsExclusive(false);
+                        }
+                      }}
                       disabled={saving}
                     />
                     <Label htmlFor="exclusive" className="text-xs cursor-pointer">
@@ -1020,6 +1035,47 @@ export default function NoteEditorPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Exclusive rights pledge dialog */}
+      <Dialog open={showExclusiveDialog} onOpenChange={setShowExclusiveDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Exclusive Rights Declaration</DialogTitle>
+            <DialogDescription>
+              Before enabling exclusive rights, please read and agree to the following.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 text-sm text-muted-foreground">
+            <p>By enabling <strong className="text-foreground">Exclusive Rights</strong>, you declare that:</p>
+            <ul className="list-disc pl-5 space-y-1.5">
+              <li>The content is entirely your own original work.</li>
+              <li>It has <strong className="text-foreground">not been published</strong> anywhere online — including personal sites, social media, blogs, or file-sharing platforms.</li>
+              <li>It has <strong className="text-foreground">not been submitted</strong> to any anti-plagiarism service such as Turnitin, iThenticate, Copyscape, or similar tools.</li>
+              <li>You have the full legal right to transfer ownership of this content.</li>
+            </ul>
+            <p className="text-destructive font-medium">
+              Violations may result in a permanent ban and potential legal liability.
+            </p>
+          </div>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={() => setShowExclusiveDialog(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              className="bg-violet-600 hover:bg-violet-700"
+              onClick={() => {
+                setIsExclusive(true);
+                setShowExclusiveDialog(false);
+              }}
+            >
+              I agree — enable exclusive rights
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

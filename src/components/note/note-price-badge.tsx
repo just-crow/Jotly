@@ -1,4 +1,12 @@
+"use client";
+
 import { Badge } from "@/components/ui/badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface NotePriceBadgeProps {
   price: number;
@@ -17,9 +25,23 @@ export function NotePriceBadge({ price, isExclusive = false, isSold = false }: N
 
   if (isExclusive) {
     return (
-      <Badge className="bg-violet-600 hover:bg-violet-700 text-xs">
-        Excl. ${Number(price).toFixed(2)}
-      </Badge>
+      <TooltipProvider delayDuration={150}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Badge className="bg-violet-600 hover:bg-violet-700 text-xs cursor-help">
+              Excl. ${Number(price).toFixed(2)}
+            </Badge>
+          </TooltipTrigger>
+          <TooltipContent side="bottom" className="max-w-72 text-xs leading-relaxed">
+            <p>
+              <strong>Exclusive Rights</strong> — The creator has declared that this content is
+              entirely original and has not been published anywhere on the internet, including
+              submission to anti-plagiarism services such as Turnitin, iThenticate, or similar
+              platforms. By purchasing, you receive full and sole ownership.
+            </p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     );
   }
 
