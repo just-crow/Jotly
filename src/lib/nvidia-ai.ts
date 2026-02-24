@@ -93,6 +93,7 @@ async function callNvidia(messages: ChatMessage[], options?: NvidiaOptions): Pro
 }
 
 // Streaming call — yields text chunks, stripping <think>...</think> blocks
+// Handles tags split across multiple SSE chunks by buffering until safe to emit.
 export async function* streamNvidia(messages: ChatMessage[], options?: NvidiaOptions): AsyncGenerator<string> {
   const res = await fetch(`${NVIDIA_BASE_URL}/chat/completions`, {
     method: "POST",
@@ -117,9 +118,9 @@ export async function* streamNvidia(messages: ChatMessage[], options?: NvidiaOpt
 
   const reader = res.body.getReader()
   const decoder = new TextDecoder()
-  let sseBuffer = ""
-  let thinkBuffer = ""  // accumulates text while inside a <think> block
-  let inThink = false
+  let sseBuffer = ""   // raw SSE line buffer
+  let textBuffer = ""  // accumulated model text, used to track think blocks
+  let thinkDone = false // once we've seen </think> or confirmed no think block, start emitting
 
   while (true) {
     const { done, value } = await reader.read()
@@ -132,41 +133,39 @@ export async function* streamNvidia(messages: ChatMessage[], options?: NvidiaOpt
       const trimmed = line.trim()
       if (!trimmed.startsWith("data:")) continue
       const json = trimmed.slice(5).trim()
-      if (json === "[DONE]") return
+      if (json === "[DONE]") {
+        // Flush anything remaining after think block
+        if (thinkDone && textBuffer) {
+          yield textBuffer
+          textBuffer = ""
+        }
+        return
+      }
       try {
         const parsed = JSON.parse(json) as ChatCompletionsResponse
         const chunk = parsed.choices?.[0]?.delta?.content
         if (!chunk) continue
 
-        // Process chunk character by character to handle <think> blocks
-        let out = ""
-        let i = 0
-        const combined = chunk
+        textBuffer += chunk
 
-        while (i < combined.length) {
-          if (!inThink) {
-            const startIdx = combined.indexOf("<think>", i)
-            if (startIdx === -1) {
-              out += combined.slice(i)
-              break
-            }
-            out += combined.slice(i, startIdx)
-            inThink = true
-            thinkBuffer = ""
-            i = startIdx + 7
-          } else {
-            const endIdx = combined.indexOf("</think>", i)
-            if (endIdx === -1) {
-              thinkBuffer += combined.slice(i)
-              break
-            }
-            thinkBuffer = ""
-            inThink = false
-            i = endIdx + 8
+        if (!thinkDone) {
+          // Check if the think block is fully closed
+          const closeIdx = textBuffer.indexOf("</think>")
+          if (closeIdx !== -1) {
+            // Strip everything up to and including </think>
+            textBuffer = textBuffer.slice(closeIdx + 8).replace(/^\n+/, "")
+            thinkDone = true
+          } else if (!textBuffer.startsWith("<think>") && !("<think>".startsWith(textBuffer))) {
+            // No think block at all — safe to start emitting immediately
+            thinkDone = true
           }
+          // else: still accumulating the think block, don't emit yet
         }
 
-        if (out) yield out
+        if (thinkDone && textBuffer) {
+          yield textBuffer
+          textBuffer = ""
+        }
       } catch { /* skip malformed lines */ }
     }
   }
