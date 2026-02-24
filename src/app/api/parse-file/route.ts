@@ -3,6 +3,9 @@ import { requireAuth } from "@/lib/auth";
 import { rateLimit, getRateLimitKey } from "@/lib/rate-limit";
 import { sanitizeHtml } from "@/lib/sanitize";
 
+// Must run in Node.js — pdf-parse and mammoth are not Edge-compatible
+export const runtime = "nodejs";
+
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 const ALLOWED_EXTENSIONS = [".pdf", ".docx", ".md", ".txt"];
 
@@ -49,12 +52,11 @@ export async function POST(request: NextRequest) {
     }
 
     if (name.endsWith(".pdf")) {
-      const dataBytes = new Uint8Array(await file.arrayBuffer());
-      const { PDFParse } = await import("pdf-parse");
-      const parser = new PDFParse({ data: dataBytes });
-      const data = await parser.getText();
-      await parser.destroy();
-      const text = data.text || "";
+      const buffer = Buffer.from(await file.arrayBuffer());
+      // Import from internal path to avoid the DOMMatrix test-file error
+      const pdfParse = (await import("pdf-parse/lib/pdf-parse.js" as string)).default;
+      const data = await pdfParse(buffer);
+      const text = (data.text as string) || "";
       const html = sanitizeHtml(
         text
           .split("\n")
