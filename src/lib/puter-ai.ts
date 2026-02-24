@@ -1,3 +1,7 @@
+// NVIDIA NIM API client — drop-in replacement for puter-ai.ts
+// Model: meta/llama-3.3-70b-instruct
+// API is OpenAI-compatible, base URL: https://integrate.api.nvidia.com/v1
+
 export type PuterChatRole = "system" | "user" | "assistant" | "tool"
 
 export interface PuterChatMessage {
@@ -5,7 +9,7 @@ export interface PuterChatMessage {
   content: string
 }
 
-interface PuterOptions {
+interface NvidiaOptions {
   model?: string
   temperature?: number
   maxTokens?: number
@@ -15,52 +19,31 @@ interface ChatCompletionsChoice {
   message?: {
     content?: string
   }
-  text?: string
 }
 
 interface ChatCompletionsResponse {
   choices?: ChatCompletionsChoice[]
-  message?: {
-    content?: string
-  }
-  text?: string
-  content?: string
 }
 
-function normalizeText(value: unknown): string {
-  if (typeof value === "string") return value.trim()
-  if (!value || typeof value !== "object") return ""
+const NVIDIA_BASE_URL = "https://integrate.api.nvidia.com/v1"
+const DEFAULT_MODEL = "meta/llama-3.3-70b-instruct"
 
-  const data = value as ChatCompletionsResponse
-  const fromChoice = data.choices?.[0]?.message?.content || data.choices?.[0]?.text
-  if (typeof fromChoice === "string" && fromChoice.trim()) return fromChoice.trim()
-
-  const fromMessage = data.message?.content
-  if (typeof fromMessage === "string" && fromMessage.trim()) return fromMessage.trim()
-
-  if (typeof data.text === "string" && data.text.trim()) return data.text.trim()
-  if (typeof data.content === "string" && data.content.trim()) return data.content.trim()
-
-  return ""
-}
-
-function modelName(options?: PuterOptions): string {
+function getModel(options?: NvidiaOptions): string {
   return (
     options?.model ||
-    process.env.PUTER_MODEL ||
-    process.env.NEXT_PUBLIC_PUTER_MODEL ||
-    "gpt-4o-mini"
+    process.env.NVIDIA_MODEL ||
+    DEFAULT_MODEL
   )
 }
 
-function parseBaseUrl(): string | null {
-  const raw = process.env.PUTER_API_BASE_URL || process.env.PUTER_API_URL || ""
-  if (!raw) return null
-  return raw.replace(/\/$/, "")
+function getApiKey(): string {
+  const key = process.env.NVIDIA_API_KEY
+  if (!key) throw new Error("Missing NVIDIA_API_KEY environment variable")
+  return key
 }
 
-function getApiKey(): string | null {
-  return process.env.PUTER_API_KEY || null
+function normalizeResponse(data: ChatCompletionsResponse): string {
+  return data.choices?.[0]?.message?.content?.trim() || ""
 }
 
 function extractPromptContext(prompt: string): string {
@@ -71,14 +54,10 @@ function extractPromptContext(prompt: string): string {
     "Content (first 1500 chars):",
     "Here is the current note content:",
   ]
-
   for (const marker of sections) {
     const index = prompt.indexOf(marker)
-    if (index !== -1) {
-      return prompt.slice(index + marker.length).trim()
-    }
+    if (index !== -1) return prompt.slice(index + marker.length).trim()
   }
-
   return prompt
 }
 
@@ -88,22 +67,17 @@ function buildFallbackSummary(prompt: string): string {
     .replace(/[#*_`>\[\]!()-]/g, " ")
     .replace(/\s+/g, " ")
     .trim()
-
   if (!source) return "This note contains useful material for study and revision."
-
   const firstChunk = source.slice(0, 260)
   const firstSentence = firstChunk.split(/(?<=[.!?])\s+/)[0]?.trim() || firstChunk
-  const secondSentence = "This summary was auto-generated from the note content."
-  return `${firstSentence} ${secondSentence}`.trim()
+  return `${firstSentence} This summary was auto-generated from the note content.`.trim()
 }
 
 function localPromptFallback(prompt: string): string {
   const lowered = prompt.toLowerCase()
-
   if (lowered.includes('"tags"')) {
     return JSON.stringify({ tags: ["general", "notes", "study"] })
   }
-
   if (lowered.includes('"isvalid"') && lowered.includes("grammar_score")) {
     return JSON.stringify({
       isValid: true,
@@ -113,18 +87,15 @@ function localPromptFallback(prompt: string): string {
       learning_value_score: 7,
     })
   }
-
   if (lowered.includes('"score"') && lowered.includes('"reason"')) {
     return JSON.stringify({
       score: 7,
       reason: "The note is on-topic and useful, but could benefit from deeper coverage.",
     })
   }
-
   if (lowered.includes("concise 2-sentence summary") || lowered.includes("generate a concise")) {
     return buildFallbackSummary(prompt)
   }
-
   return "I couldn't reach the AI provider. Please try again shortly."
 }
 
@@ -134,55 +105,49 @@ function localChatFallback(messages: PuterChatMessage[]): string {
   if (!trimmed) {
     return "Share what you want to improve in your note, and I can suggest structure, clarity, and wording changes."
   }
-
   return `I can help refine this. Start by clarifying your key point, then add one concrete example. Draft to improve: "${trimmed.slice(0, 180)}"`
 }
 
-async function callRemote(messages: PuterChatMessage[], options?: PuterOptions): Promise<string | null> {
-  const baseUrl = parseBaseUrl()
-  const apiKey = getApiKey()
-  if (!baseUrl || !apiKey) return null
+async function callNvidia(messages: PuterChatMessage[], options?: NvidiaOptions): Promise<string | null> {
+  try {
+    const apiKey = getApiKey()
+    const response = await fetch(`${NVIDIA_BASE_URL}/chat/completions`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: getModel(options),
+        messages,
+        temperature: options?.temperature ?? 0.3,
+        max_tokens: options?.maxTokens ?? 1200,
+        top_p: 1,
+        stream: false,
+      }),
+    })
 
-  const endpoints = [
-    `${baseUrl}/chat/completions`,
-    `${baseUrl}/v1/chat/completions`,
-  ]
-
-  for (const endpoint of endpoints) {
-    try {
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          model: modelName(options),
-          temperature: options?.temperature ?? 0.3,
-          max_tokens: options?.maxTokens ?? 1200,
-          messages,
-        }),
-      })
-
-      if (!response.ok) continue
-
-      const payload = (await response.json()) as ChatCompletionsResponse
-      const text = normalizeText(payload)
-      if (text) return text
-    } catch {
-      continue
+    if (!response.ok) {
+      const errText = await response.text()
+      console.error(`NVIDIA API error ${response.status}:`, errText)
+      return null
     }
+
+    const data = (await response.json()) as ChatCompletionsResponse
+    const text = normalizeResponse(data)
+    return text || null
+  } catch (err) {
+    console.error("NVIDIA API call failed:", err)
+    return null
   }
-
-  return null
 }
 
-export async function puterPrompt(prompt: string, options?: PuterOptions): Promise<string> {
-  const remote = await callRemote([{ role: "user", content: prompt }], options)
-  return remote || localPromptFallback(prompt)
+export async function puterPrompt(prompt: string, options?: NvidiaOptions): Promise<string> {
+  const result = await callNvidia([{ role: "user", content: prompt }], options)
+  return result || localPromptFallback(prompt)
 }
 
-export async function puterChat(messages: PuterChatMessage[], options?: PuterOptions): Promise<string> {
-  const remote = await callRemote(messages, options)
-  return remote || localChatFallback(messages)
+export async function puterChat(messages: PuterChatMessage[], options?: NvidiaOptions): Promise<string> {
+  const result = await callNvidia(messages, options)
+  return result || localChatFallback(messages)
 }
