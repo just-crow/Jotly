@@ -6,7 +6,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { Toaster } from "sonner";
-import Script from "next/script";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -33,7 +32,6 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} font-sans antialiased overflow-x-hidden`}>
-        <Script src="https://js.puter.com/v2/" strategy="afterInteractive" />
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
