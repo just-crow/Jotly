@@ -62,33 +62,8 @@ export function StoreClient({
   const pointsToReceive = amount * POINTS_PER_DOLLAR;
 
   const handleBuyPoints = async () => {
-    if (amount < 10) {
-      toast.error("Minimum purchase is $10");
-      return;
-    }
-
-    setBuying(true);
-    try {
-      const res = await fetch("/api/store/buy-points", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Purchase failed");
-
-      setBalance(data.new_balance);
-      toast.success(
-        `Purchased ${data.points_credited.toLocaleString()} points for $${amount}!`
-      );
-      setDialogOpen(false);
-      router.refresh();
-    } catch (err: any) {
-      toast.error(err.message);
-    } finally {
-      setBuying(false);
-    }
+    toast.error("Not implemented yet");
+    return;
   };
 
   const getTransactionIcon = (type: string) => {

@@ -63,24 +63,8 @@ export function NotePurchaseWall({
       return;
     }
 
-    setPurchasing(true);
-    try {
-      const res = await fetch("/api/store/purchase-note", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ noteId, paymentMethod: method }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Purchase failed");
-
-      toast.success("Purchase successful! Enjoy your note.");
-      router.refresh();
-    } catch (err: any) {
-      toast.error(err.message);
-    } finally {
-      setPurchasing(false);
-    }
+    toast.error("Not implemented yet");
+    return;
   };
 
   // If the exclusive note has already been sold, nothing to buy
