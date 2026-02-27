@@ -236,7 +236,11 @@ export function ExploreClient({
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
               transition={{ type: "spring", stiffness: 340, damping: 32 }}
-              className="fixed bottom-0 left-0 right-0 z-50 sm:hidden rounded-t-2xl border-t border-border/60 bg-card shadow-xl" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+              className="fixed left-0 right-0 z-50 sm:hidden rounded-t-2xl border-t border-border/60 bg-card shadow-xl" 
+              style={{ 
+                bottom: "-200px", 
+                paddingBottom: "calc(200px + env(safe-area-inset-bottom))" 
+              }}
             >
               {/* Handle */}
               <div className="flex justify-center pt-3 pb-1">
@@ -254,7 +258,7 @@ export function ExploreClient({
                 </button>
               </div>
 
-              <div className="px-5 pb-6 flex flex-col gap-5 overflow-y-auto max-h-[70dvh]">
+              <div className="px-5 pb-6 flex flex-col gap-5 overflow-y-auto overscroll-contain max-h-[70dvh]">
                 {/* Sort */}
                 <div className="space-y-2">
                   <span className="text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-widest">Sort</span>
